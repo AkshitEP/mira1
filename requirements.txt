@@ -1,2 +1,2 @@
 mira-sdk
-dotenv
+python-dotenv
