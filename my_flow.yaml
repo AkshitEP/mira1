@@ -1,0 +1,71 @@
+name: OmniML_Intelligence_Suite
+version: 1.1.0
+description: Multi-modal AI system with ensemble learning and real-time analytics
+
+pipelines:
+  - name: data_ingestion
+    type: python
+    file: pipelines/data_handler.py
+    function: load_multimodal_data
+    parameters:
+      sources: 
+        - csv
+        - api
+        - database
+      cache: true
+
+  - name: preprocessing
+    type: python
+    file: pipelines/preprocessor.py
+    function: omniprocessor
+    dependencies: [data_ingestion]
+    parameters:
+      nlp_params:
+        lang: multilingual
+        embedding: bert
+      cv_params:
+        augmentation: true
+        target_size: [224, 224]
+
+  - name: nlp_pipeline
+    type: python
+    file: pipelines/nlp_engine.py
+    function: train_ensemble_nlp
+    dependencies: [preprocessing]
+    parameters:
+      models: 
+        - bert
+        - gpt-neo
+        - electra
+      ensemble_method: stacking
+
+  - name: cv_pipeline
+    type: python
+    file: pipelines/cv_engine.py
+    function: train_cv_model
+    dependencies: [preprocessing]
+    parameters:
+      architecture: efficientnet-b7
+      transfer_learning: imagenet
+      hyperparameters:
+        batch_size: 32
+        learning_rate: 0.0001
+
+  - name: analytics
+    type: python
+    file: analytics/insights.py
+    function: generate_crossmodal_insights
+    dependencies: [nlp_pipeline, cv_pipeline]
+    parameters:
+      visualization: 3d
+      metrics: [accuracy, f1, roc_auc]
+
+  - name: deployment
+    type: python
+    file: deployment/api_handler.py
+    function: create_rest_api
+    dependencies: [analytics]
+    parameters:
+      framework: fastapi
+      version: 0.75.0
+      auth: jwt
